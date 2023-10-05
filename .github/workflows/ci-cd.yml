@@ -1,61 +1,64 @@
-name: CI/CD Pipeline
+  name: CI/CD Pipeline
 
-on: [push]
+  on: [push]
 
-jobs:
-  unit_tests:
-    runs-on: ubuntu-latest
+  jobs:
+    unit_tests:
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
 
-      - name: Set up JDK 18 with Adopt distribution
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: '18'
+        - name: Set up JDK 18 with Adopt distribution
+          uses: actions/setup-java@v2
+          with:
+            distribution: 'adopt'
+            java-version: '18'
 
-      - name: Set permissions for gradlew
-        run: |
-          chmod +x demo/gradlew
+        - name: Set permissions for gradlew
+          run: |
+            chmod +x demo/gradlew
 
-      - name: Build Java application
-        run: |
-          cd demo
-          ./gradlew build
+        - name: Build Java application
+          run: |
+            cd demo
+            ./gradlew build
 
-      - name: List the contents of the build directory
-        run: ls -la demo/build/libs/
+        - name: List the contents of the build directory
+          run: ls -la demo/build/libs/
 
-  build_and_push:
-    needs: unit_tests
-    runs-on: ubuntu-latest
+    build_and_push:
+      needs: unit_tests
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
 
-      - name: Login to GitHub Packages Docker registry
-        run: echo "${{ secrets.Docker_Pat }}" | docker login docker.pkg.github.com -u JesperSchon --password-stdin
+        - name: Login to GitHub Packages Docker registry
+          run: echo "${{ secrets.DOCKER_PAT_KEY }}" | docker login docker.pkg.github.com -u danielkarimi --password-stdin
 
-      - name: Build Docker image
-        run: |
-          IMAGE_TAG=$(echo ${GITHUB_REF##*/} | tr '[:upper:]' '[:lower:]')
-          docker build -t docker.pkg.github.com/jesperschon/to-do-list-grupp-7/min-app:$IMAGE_TAG -f Dockerfile .
+        - name: Build Docker image
+          run: |
+            IMAGE_TAG=$(echo ${GITHUB_REF##*/} | tr '[:upper:]' '[:lower:]')
+            docker build -t docker.pkg.github.com/danielkarimi/to-do-list-grupp-7/min-app:$IMAGE_TAG -f Dockerfile .
 
-      - name: Push Docker image to GitHub Packages
-        run: |
-          IMAGE_TAG=$(echo ${GITHUB_REF##*/} | tr '[:upper:]' '[:lower:]')
-          docker push docker.pkg.github.com/jesperschon/to-do-list-grupp-7/min-app:$IMAGE_TAG
+        - name: Push Docker image to GitHub Packages
+          run: |
+            IMAGE_TAG=$(echo ${GITHUB_REF##*/} | tr '[:upper:]' '[:lower:]')
+            docker push docker.pkg.github.com/danielkarimi/to-do-list-grupp-7/min-app:$IMAGE_TAG
 
-  fake_deploy:
-    needs: build_and_push
-    runs-on: ubuntu-latest
+    fake_deploy:
+      needs: build_and_push
+      runs-on: ubuntu-latest
 
-    steps:
-      - name: Fake Deploy to Test Environment
-        run: |
-          IMAGE_TAG=$(echo ${GITHUB_REF##*/} | tr '[:upper:]' '[:lower:]')
-          echo "Deploying image docker.pkg.github.com/jesperschon/to-do-list-grupp-7/min-app:$IMAGE_TAG"
+      steps:
+        - name: Fake Deploy to Test Environment
+          run: |
+            IMAGE_TAG=$(echo ${GITHUB_REF##*/} | tr '[:upper:]' '[:lower:]')
+            echo "Deploying image docker.pkg.github.com/danielkarimi/to-do-list-grupp-7/min-app:$IMAGE_TAG"
+          
+          
+          
 
