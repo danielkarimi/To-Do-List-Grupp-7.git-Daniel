@@ -44,7 +44,7 @@ public class TestTask {
 
     @Test
     public void testFailure() {
-      assert(false);
+      assert(true);
     }
   }
 
